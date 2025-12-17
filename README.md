@@ -147,6 +147,13 @@ Now you need to put your own Firebase keys into the code.
     *   Click **"Start Game"** to begin the answering phase.
     *   Control the flow: "To Voting Phase" -> "Start Voting" -> "Show Results" -> "Next Question".
 
+## 🛠️ Troubleshooting
+If creating a game or adding questions doesn't work at first:
+- **Refresh the Page:** Reopen the page directly via your link without any session code (e.g., go to `.../host.html` directly).
+- **Restart Browser:** Close and reopen your browser to clear any temporary connection issues.
+- **Check Database Rules:** Ensure your Firebase Realtime Database rules are set to `true` as described in Part 1-D.
+- **Check Config:** Double check that `firebase-config.js` in your repository has the correct keys and includes the `databaseURL`.
+
 ## Database Structure
 
 ```
