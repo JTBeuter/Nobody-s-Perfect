@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nobody's Perfect - Host</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Screen - Add Questions -->
+        <div id="setupScreen" class="screen active">
+            <!-- Header -->
+            <header class="host-header">
+                <div>
+                    <h1>🎮 Setup (Session: <span id="sessionCodeDisplaySetup">...</span>)</h1>
+                    <p style="color: var(--text-color); margin-top: 5px; background: rgba(0, 0, 0, 0.2); padding: 8px 15px; border-radius: 6px; display: inline-block;">Create your questions for the game</p>
+                </div>
+                <button id="backToMainBtn" class="btn btn-secondary" style="width: auto;">Exit Session</button>
+            </header>
+
+            <!-- Question Creation Form -->
+            <div class="management-panel">
+                <div class="question-form">
+                    <h3>Add New Question</h3>
+                    
+                    <div class="form-section">
+                        <label for="questionInput">Question:</label>
+                        <textarea id="questionInput" placeholder="Enter the question..." maxlength="200"></textarea>
+                    </div>
+
+                    <div class="form-section">
+                        <label for="correctAnswerInput">Correct Answer:</label>
+                        <input 
+                            type="text" 
+                            id="correctAnswerInput" 
+                            placeholder="The correct answer..."
+                            maxlength="100"
+                        >
+                    </div>
+
+                    <div class="button-group">
+                        <button id="addQuestionBtn" class="btn btn-primary">Add Question</button>
+                        <button id="createLobbyBtn" class="btn btn-primary" style="margin-left: 10px;">Create Lobby</button>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="answer-management">
+                    <h3>Settings</h3>
+                    
+                    <!-- Background Image -->
+                    <div class="form-section">
+                        <label for="bgUpload">Change Background Image:</label>
+                        <input type="file" id="bgUpload" accept="image/png, image/jpeg, image/jpg" style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color);">
+                        <button id="resetBgBtn" class="btn btn-secondary" style="margin-top: 10px;">Reset Background</button>
+                    </div>
+
+                    <!-- Background Zoom/Pattern -->
+                    <div class="form-section">
+                        <label for="bgScaleInput">Background Scale / Pattern:</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 0.9em;">Image</span>
+                            <input type="range" id="bgScaleInput" min="1" max="10" step="1" value="6" style="flex: 1;">
+                            <span style="font-size: 0.9em;">Pattern (<span id="bgScaleValue">6</span>x)</span>
+                        </div>
+                    </div>
+
+                    <!-- Colors -->
+                    <div class="form-section">
+                        <div style="display: flex; gap: 15px;">
+                            <div style="flex: 1;">
+                                <label for="primaryColorPicker">Primary Color:</label>
+                                <input type="color" id="primaryColorPicker" value="#0080FF" style="width: 100%; height: 40px; border: none; border-radius: 4px; cursor: pointer;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="secondaryColorPicker">Secondary Color:</label>
+                                <input type="color" id="secondaryColorPicker" value="#C0C0C0" style="width: 100%; height: 40px; border: none; border-radius: 4px; cursor: pointer;">
+                            </div>
+                        </div>
+                        <button id="resetColorsBtn" class="btn btn-secondary" style="margin-top: 10px; width: 100%;">Reset Colors</button>
+                    </div>
+
+                    <h3>Time Settings</h3>
+                    <div class="form-section">
+                        <label for="answeringTimeInput">Answering Phase Time (seconds):</label>
+                        <input 
+                            type="number" 
+                            id="answeringTimeInput" 
+                            placeholder="e.g. 300"
+                            min="10"
+                            max="300"
+                            value="300"
+                        >
+                    </div>
+                    <div class="form-section">
+                        <label for="votingTimeInput">Voting Phase Time (seconds):</label>
+                        <input 
+                            type="number" 
+                            id="votingTimeInput" 
+                            placeholder="e.g. 90"
+                            min="10"
+                            max="300"
+                            value="90"
+                        >
+                    </div>
+                </div>
+
+                <!-- Questions List -->
+                <div class="answer-management questions-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3>Questions (<span id="questionCount">0</span>)</h3>
+                        <button id="clearQuestionsBtn" class="btn btn-danger" style="width: auto; display: none;" onclick="clearAllQuestions()">Delete All</button>
+                    </div>
+                    <div id="questionsList" class="questions-list">
+                        <p class="empty-state">No questions added yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <!-- Header -->
+            <header class="host-header">
+                <div>
+                    <h1>🎮 Host Panel (<span id="sessionCodeDisplayGame">...</span>)</h1>
+                    <p style="color: var(--text-color); margin-top: 5px; background: rgba(0, 0, 0, 0.2); padding: 8px 15px; border-radius: 6px; display: inline-block;"><span id="phaseLabel">Setup</span> - Question <span id="currentQuestionNumber">1</span> / <span id="totalQuestions">0</span></p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div id="hostTimerDisplay" style="font-size: 1.5em; font-weight: bold; color: #10b981; display: none;">
+                        ⏱️ <span id="hostTimerMinutes">0</span>:<span id="hostTimerSeconds">00</span>
+                    </div>
+                    <button id="backToSetupBtn" class="btn btn-secondary" style="width: auto;">Back to Setup</button>
+                </div>
+            </header>
+
+            <!-- Management Panel -->
+            <div class="management-panel">
+                <!-- QR Code Display (Setup Phase) -->
+                <div class="answer-management" id="qrCodeSection" style="text-align: center;">
+                    <h3>Join Game</h3>
+                    <p style="margin-bottom: 10px; color: #cbd5e1;">Scan QR Code or go to <strong>join.html</strong> and enter Code: <strong style="color: var(--primary-color); font-size: 1.2em;" id="sessionCodeText">...</strong></p>
+                    <img id="qrCodeImage" src="" alt="Join QR Code" style="max-width: 300px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+                    <!-- <button id="downloadQrBtn" class="btn btn-secondary" style="width: auto;">⬇️ Download QR Code</button> -->
+                </div>
+
+                <!-- Game Controls -->
+                <div class="question-form">
+                    <h3>Game Controls</h3>
+                    
+                    <div class="button-group">
+                        <button id="startAnsweringBtn" class="btn btn-primary" style="display: none;">Start Game</button>
+                        <button id="startVotingBtn" class="btn btn-primary" style="display: none;">Start Voting</button>
+                        <button id="showResultsBtn" class="btn btn-secondary" style="display: none;">Show Results</button>
+                        <button id="nextQuestionBtn" class="btn btn-primary" style="display: none;">Next Question</button>
+                        <button id="newGameBtn" class="btn btn-primary" style="display: none;">New Game</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="answer-management">
+                    <h3>Statistics</h3>
+                    <div class="form-section">
+                        <p><strong>Active Teams:</strong> <span id="teamCount">0</span></p>
+                        <p id="statsAnswers"><strong>Answers Received:</strong> <span id="answerCount">0</span></p>
+                        <p id="statsVotes" style="display: none;"><strong>Votes Cast:</strong> <span id="voteCount">0</span></p>
+                    </div>
+                    <button id="resetGameBtn" class="btn btn-danger">Reset Game</button>
+                </div>
+
+                <!-- Teams Display (Setup Phase) -->
+                <div class="answer-management" id="teamsDisplaySection" style="display: none;">
+                    <h3>Joined Teams</h3>
+                    <div id="hostTeamsList" class="scoreboard">
+                        <p class="empty-state">Waiting for teams...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Question -->
+            <div class="answers-display">
+                <h3>Current Question</h3>
+                <div id="currentQuestionDisplay" class="question-box">
+                    <p class="empty-state">No question active</p>
+                </div>
+            </div>
+
+            <!-- Answers Section -->
+            <div class="answers-display">
+                <h3 id="answersTitle">Received Answers</h3>
+                <div id="answersList" class="empty-state">
+                    Waiting for answers from teams...
+                </div>
+            </div>
+
+            <!-- Final Scoreboard -->
+            <div class="answers-display">
+                <h3>Scores</h3>
+                <div id="finalScoreboard">
+                    <p class="empty-state">No scores yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getDatabase, ref, set, update, onValue, child, get, remove } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        // Get Session Code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionCode = urlParams.get('session');
+
+        if (!sessionCode) {
+            alert('No session code found! Redirecting to main page.');
+            window.location.href = 'index.html';
+        }
+
+        // Display Session Code
+        document.getElementById('sessionCodeDisplaySetup').textContent = sessionCode;
+        document.getElementById('sessionCodeDisplayGame').textContent = sessionCode;
+        document.getElementById('sessionCodeText').textContent = sessionCode;
+
+        // Generate QR Code
+        const joinUrl = window.location.href.replace('host.html', 'join.html');
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(joinUrl)}`;
+        document.getElementById('qrCodeImage').src = qrUrl;
+
+        // Helper to get Firebase Ref with Session Prefix
+        function getGameRef(path) {
+            // If path starts with slash, remove it
+            if (path.startsWith('/')) path = path.substring(1);
+            return ref(db, `games/${sessionCode}/${path}`);
+        }
+
+        let currentQuestion = null;
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let gameStarted = false;
+        let editingIndex = null;
+        let gamePhase = 'setup'; // 'setup', 'waiting_for_teams', 'answering', 'voting', 'finished'
+        
+        // Timer variables for host display
+        let hostTimerInterval = null;
+        let hostCurrentQuestion = null;
+
+        // Load questions from localStorage on page load
+        function loadQuestionsFromStorage() {
+            const saved = localStorage.getItem('wfeier_questions');
+            if (saved) {
+                try {
+                    questions = JSON.parse(saved);
+                    updateQuestionsDisplay();
+                    console.log('Questions loaded from storage:', questions.length);
+                } catch (error) {
+                    console.error('Error loading questions from storage:', error);
+                    questions = [];
+                }
+            }
+        }
+
+        // Save questions to localStorage
+        function saveQuestionsToStorage() {
+            try {
+                localStorage.setItem('wfeier_questions', JSON.stringify(questions));
+            } catch (error) {
+                console.error('Error saving questions to storage:', error);
+            }
+        }
+
+        // Anonymous sign-in
+        signInAnonymously(auth)
+            .then(user => {
+                console.log("Host authenticated as:", user.user.uid);
+            })
+            .catch(error => console.error("Auth error:", error));
+
+        // Event Listeners - Setup Mode
+        document.getElementById('addQuestionBtn').addEventListener('click', addQuestion);
+        document.getElementById('createLobbyBtn').addEventListener('click', createLobby);
+        
+        // Background Upload Logic
+        document.getElementById('bgUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Check file size (max 800KB to be safe with RTDB limits)
+            if (file.size > 800 * 1024) {
+                alert('Image is too large! Please choose an image under 800KB.');
+                this.value = ''; // Reset input
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64String = event.target.result;
+                set(getGameRef('settings/background'), base64String)
+                    .then(() => alert('Background image updated!'))
+                    .catch(err => alert('Error uploading: ' + err.message));
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('resetBgBtn').addEventListener('click', function() {
+            remove(getGameRef('settings/background'))
+                .then(() => alert('Background reset!'))
+                .catch(err => console.error(err));
+        });
+
+        // Background Scale Logic
+        const bgScaleInput = document.getElementById('bgScaleInput');
+        bgScaleInput.addEventListener('input', function(e) {
+            document.getElementById('bgScaleValue').textContent = e.target.value;
+            set(getGameRef('settings/bgScale'), parseInt(e.target.value));
+        });
+
+        // Color Picker Logic
+        const primaryColorPicker = document.getElementById('primaryColorPicker');
+        const secondaryColorPicker = document.getElementById('secondaryColorPicker');
+
+        primaryColorPicker.addEventListener('change', function(e) {
+            set(getGameRef('settings/theme/primary'), e.target.value);
+        });
+
+        secondaryColorPicker.addEventListener('change', function(e) {
+            set(getGameRef('settings/theme/secondary'), e.target.value);
+        });
+
+        document.getElementById('resetColorsBtn').addEventListener('click', function() {
+            remove(getGameRef('settings/theme'));
+            // Reset pickers locally to default
+            primaryColorPicker.value = '#0080FF';
+            secondaryColorPicker.value = '#C0C0C0';
+        });
+
+        // Listen for background changes (Image & Scale)
+        onValue(getGameRef('settings'), (snapshot) => {
+            const settings = snapshot.val() || {};
+            
+            // Apply Background Image
+            if (settings.background) {
+                document.body.style.setProperty('--custom-bg', `url('${settings.background}')`);
+            } else {
+                document.body.style.removeProperty('--custom-bg');
+            }
+
+            // Apply Scale/Pattern
+            const scale = settings.bgScale || 6;
+            // Update input if changed by another host/session
+            if (document.activeElement !== bgScaleInput) {
+                bgScaleInput.value = scale;
+                document.getElementById('bgScaleValue').textContent = scale;
+            }
+
+            if (scale > 1) {
+                document.body.style.backgroundSize = `${100 / scale}vw`; // Use vw for responsive scaling
+                document.body.style.backgroundRepeat = 'repeat';
+            } else {
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundRepeat = 'no-repeat';
+            }
+
+            // Apply Theme Colors
+            if (settings.theme) {
+                const root = document.documentElement;
+                if (settings.theme.primary) {
+                    root.style.setProperty('--primary-color', settings.theme.primary);
+                    // Update picker if not focused
+                    if (document.activeElement !== primaryColorPicker) {
+                        primaryColorPicker.value = settings.theme.primary;
+                    }
+                }
+                if (settings.theme.secondary) {
+                    root.style.setProperty('--secondary-color', settings.theme.secondary);
+                    // Update picker if not focused
+                    if (document.activeElement !== secondaryColorPicker) {
+                        secondaryColorPicker.value = settings.theme.secondary;
+                    }
+                }
+            } else {
+                // Reset to CSS defaults if no theme setting
+                const root = document.documentElement;
+                root.style.removeProperty('--primary-color');
+                root.style.removeProperty('--secondary-color');
+            }
+        });
+        
+        // Event Listeners - Game Mode
+        document.getElementById('startVotingBtn').addEventListener('click', startVotingPhase);
+        document.getElementById('newGameBtn').addEventListener('click', backToSetup);
+        document.getElementById('showResultsBtn').addEventListener('click', (e) => {
+            const buttonText = document.getElementById('showResultsBtn').textContent;
+            if (buttonText === 'End Game') {
+                showResults(true); // Pass true to indicate game is ending
+            } else {
+                showResults(false);
+            }
+        });
+        document.getElementById('startAnsweringBtn').addEventListener('click', startAnsweringPhase);
+        document.getElementById('nextQuestionBtn').addEventListener('click', nextQuestion);
+        document.getElementById('resetGameBtn').addEventListener('click', resetGame);
+        document.getElementById('backToSetupBtn').addEventListener('click', backToSetup);
+        document.getElementById('backToMainBtn').addEventListener('click', () => window.location.href = 'index.html');
+        // document.getElementById('downloadQrBtn').addEventListener('click', downloadQrCode);
+
+        // Load saved questions on page load
+        loadQuestionsFromStorage();
+
+        // Start listening for data
+        startListeners();
+        
+        // Check if a game is already in progress and restore it
+        restoreGameState();
+
+        async function restoreGameState() {
+            try {
+                // Check if there's an active game
+                const phaseSnapshot = await get(getGameRef('phase'));
+                const phase = phaseSnapshot.val();
+                
+                // If phase exists and isn't 'setup', a game is in progress
+                if (phase && phase !== 'setup') {
+                    gameStarted = true;
+                    gamePhase = phase;
+                    
+                    // Restore current question index
+                    const questionsSnapshot = await get(getGameRef('questions'));
+                    if (questionsSnapshot.exists()) {
+                        const questionsData = questionsSnapshot.val();
+                        questions = Object.values(questionsData);
+                        
+                        // Find current question index
+                        const currentQSnapshot = await get(getGameRef('currentQuestion'));
+                        if (currentQSnapshot.exists()) {
+                            const currentQ = currentQSnapshot.val();
+                            currentQuestionIndex = questions.findIndex(q => q.id === currentQ.id);
+                            if (currentQuestionIndex === -1) {
+                                currentQuestionIndex = 0;
+                            }
+                        }
+                    }
+                    
+                    // Switch to game screen
+                    document.getElementById('setupScreen').classList.remove('active');
+                    document.getElementById('gameScreen').classList.add('active');
+                    
+                    console.log('✓ Game state restored - Phase:', gamePhase, 'Question:', currentQuestionIndex + 1);
+                    updateGameDisplay();
+                }
+            } catch (error) {
+                console.error('Error restoring game state:', error);
+            }
+        }
+
+        async function addQuestion() {
+            const questionText = document.getElementById('questionInput').value.trim();
+            const correctAnswer = document.getElementById('correctAnswerInput').value.trim();
+
+            if (!questionText || !correctAnswer) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (editingIndex !== null) {
+                // Update existing question
+                questions[editingIndex].text = questionText;
+                questions[editingIndex].correct = correctAnswer;
+                editingIndex = null;
+                
+                // Reset button
+                const addBtn = document.getElementById('addQuestionBtn');
+                addBtn.textContent = 'Add Question';
+                addBtn.style.background = '';
+                
+                alert('Question updated!');
+            } else {
+                // Add new question
+                const questionData = {
+                    id: `q${questions.length + 1}`,
+                    text: questionText,
+                    correct: correctAnswer,
+                    index: questions.length
+                };
+
+                questions.push(questionData);
+                alert('Question added!');
+            }
+            
+            // Save to storage
+            saveQuestionsToStorage();
+            
+            // Clear inputs
+            document.getElementById('questionInput').value = '';
+            document.getElementById('correctAnswerInput').value = '';
+
+            updateQuestionsDisplay();
+        }
+
+        function updateQuestionsDisplay() {
+            const questionsList = document.getElementById('questionsList');
+            const clearBtn = document.getElementById('clearQuestionsBtn');
+            document.getElementById('questionCount').textContent = questions.length;
+
+            if (questions.length === 0) {
+                questionsList.innerHTML = '<p class="empty-state">No questions added yet</p>';
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            clearBtn.style.display = 'inline-block';
+            let html = '';
+            questions.forEach((q, index) => {
+                html += `
+                    <div class="question-item" draggable="true" data-index="${index}">
+                        <div class="question-content">
+                            <strong>${index + 1}. ${q.text}</strong>
+                            <p style="margin-top: 5px; color: #10b981;">✓ ${q.correct}</p>
+                        </div>
+                        <div class="question-buttons">
+                            <button class="btn btn-small edit-btn" onclick="editQuestion(${index})" style="width: auto;"><span class="btn-text">Edit</span><span class="btn-icon">✎</span></button>
+                            <button class="btn btn-small btn-danger delete-btn" onclick="deleteQuestion(${index})" style="width: auto;"><span class="btn-text">Delete</span><span class="btn-icon">🗑️</span></button>
+                        </div>
+                    </div>
+                `;
+            });
+            questionsList.innerHTML = html;
+            
+            // Add drag event listeners
+            addDragListeners();
+        }
+        
+        function addDragListeners() {
+            const items = document.querySelectorAll('.question-item');
+            let draggedItem = null;
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedItem = this;
+                    this.style.opacity = '0.5';
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                item.addEventListener('dragend', function(e) {
+                    this.style.opacity = '1';
+                    draggedItem = null;
+                });
+                
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (this !== draggedItem) {
+                        this.style.borderTop = '3px solid var(--primary-color)';
+                    }
+                });
+                
+                item.addEventListener('dragleave', function(e) {
+                    this.style.borderTop = '';
+                });
+                
+                item.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    if (this !== draggedItem) {
+                        const draggedIndex = parseInt(draggedItem.dataset.index);
+                        const targetIndex = parseInt(this.dataset.index);
+                        
+                        // Swap questions
+                        [questions[draggedIndex], questions[targetIndex]] = [questions[targetIndex], questions[draggedIndex]];
+                        
+                        // Save to localStorage
+                        localStorage.setItem('wfeier_questions', JSON.stringify(questions));
+                        
+                        // Refresh display immediately
+                        updateQuestionsDisplay();
+                    }
+                    this.style.borderTop = '';
+                });
+            });
+        }
+
+        window.moveQuestionUp = function(index) {
+            if (index > 0) {
+                [questions[index - 1], questions[index]] = [questions[index], questions[index - 1]];
+                saveQuestionsToStorage();
+                updateQuestionsDisplay();
+            }
+        };
+
+        window.moveQuestionDown = function(index) {
+            if (index < questions.length - 1) {
+                [questions[index], questions[index + 1]] = [questions[index + 1], questions[index]];
+                saveQuestionsToStorage();
+                updateQuestionsDisplay();
+            }
+        };
+
+        window.editQuestion = function(index) {
+            const q = questions[index];
+            document.getElementById('questionInput').value = q.text;
+            document.getElementById('correctAnswerInput').value = q.correct;
+            editingIndex = index;
+            
+            const addBtn = document.getElementById('addQuestionBtn');
+            addBtn.textContent = 'Update Question';
+            addBtn.style.background = 'var(--secondary-color)';
+            
+            // Scroll to form
+            document.querySelector('.question-form').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.deleteQuestion = function(index) {
+            if (confirm('Really delete question?')) {
+                questions.splice(index, 1);
+                saveQuestionsToStorage();
+                updateQuestionsDisplay();
+            }
+        };
+
+        async function createLobby() {
+            if (questions.length === 0) {
+                alert('Please add at least one question');
+                return;
+            }
+
+            try {
+                // Clear previous game data (except settings) - BUT only for this session
+                // We keep settings as we already set them.
+                // We actually want to remove game state but keep settings
+                // For simplicity, we just overwrite necessary parts or remove specific nodes
+                // await remove(getGameRef('')); // Don't remove everything, keep settings!
+                
+                await remove(getGameRef('questions'));
+                await remove(getGameRef('teams'));
+                await remove(getGameRef('answers'));
+                await remove(getGameRef('votes'));
+                await remove(getGameRef('scores'));
+                await remove(getGameRef('currentQuestion'));
+                await remove(getGameRef('roundFinished'));
+
+                // Generate a random seed for this game
+                const gameSeed = Math.floor(Math.random() * 1e12).toString();
+                await set(getGameRef('seed'), gameSeed);
+
+                // Upload all questions to database
+                for (const q of questions) {
+                    await set(getGameRef(`questions/${q.id}`), q);
+                }
+
+                // Remove all teams (kick all teams out when creating lobby)
+                // Already removed above
+
+                // Set kickAll flag to force all teams to login
+                await set(getGameRef('kickAll'), true);
+
+                gameStarted = true;
+                gamePhase = 'waiting_for_teams';
+                currentQuestionIndex = 0;
+
+                // Set game phase in database to 'waiting_for_teams' so teams can join
+                await set(getGameRef('phase'), 'waiting_for_teams');
+
+                // Switch to game screen
+                document.getElementById('setupScreen').classList.remove('active');
+                document.getElementById('gameScreen').classList.add('active');
+
+                updateGameDisplay();
+            } catch (error) {
+                console.error('Error creating lobby:', error);
+                if (error.message.includes('PERMISSION_DENIED')) {
+                    alert('Error: Permission Denied. Please check your Firebase Database Rules in the Console. Make sure they allow read/write to the "games" node.');
+                } else {
+                    alert('Error creating lobby: ' + error.message);
+                }
+            }
+        }
+
+        async function presentQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                alert('All questions answered!');
+                return;
+            }
+
+            currentQuestion = questions[currentQuestionIndex];
+
+            try {
+                // Get current server timestamp for timer synchronization
+                const serverTime = Math.floor(Date.now() / 1000);
+                const answeringTimeInput = document.getElementById('answeringTimeInput');
+                const answeringTime = parseInt(answeringTimeInput.value) || 45;
+                
+                // Set current question with timer info
+                await set(getGameRef('currentQuestion'), {
+                    id: currentQuestion.id,
+                    text: currentQuestion.text,
+                    correct: currentQuestion.correct,
+                    timerStartTime: serverTime,
+                    timerDuration: answeringTime
+                });
+
+                // Reset state for this question
+                await remove(getGameRef('roundFinished'));
+                
+                // Show next question button during answering phase
+                document.getElementById('startVotingBtn').style.display = 'none';
+                document.getElementById('showResultsBtn').style.display = 'none';
+                document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+                
+                updateGameDisplay();
+            } catch (error) {
+                console.error('Error presenting question:', error);
+            }
+        }
+
+        async function presentQuestionForVoting() {
+            if (currentQuestionIndex >= questions.length) {
+                alert('All questions voted!');
+                return;
+            }
+
+            currentQuestion = questions[currentQuestionIndex];
+
+            try {
+                // Get current server timestamp for timer synchronization
+                const serverTime = Math.floor(Date.now() / 1000);
+                const votingTimeInput = document.getElementById('votingTimeInput');
+                const votingTime = parseInt(votingTimeInput.value) || 30;
+                
+                // Set current question with timer info
+                await set(getGameRef('currentQuestion'), {
+                    id: currentQuestion.id,
+                    text: currentQuestion.text,
+                    correct: currentQuestion.correct,
+                    timerStartTime: serverTime,
+                    timerDuration: votingTime
+                });
+
+                // Add correct answer as a regular answer with team name 'Lösung' if not already there
+                const correctAnswerRef = getGameRef(`answers/${currentQuestion.id}/Solution`);
+                const correctSnapshot = await get(correctAnswerRef);
+                if (!correctSnapshot.exists()) {
+                    await set(correctAnswerRef, {
+                        text: currentQuestion.correct,
+                        votes: 0,
+                        submittedAt: new Date().toISOString()
+                    });
+                }
+
+                // Immediately reveal answers for voting
+                await set(getGameRef('roundFinished'), true);
+                
+                // Show results button during voting phase
+                document.getElementById('startVotingBtn').style.display = 'none';
+                document.getElementById('showResultsBtn').style.display = 'inline-block';
+                document.getElementById('nextQuestionBtn').style.display = 'none';
+                
+                // Check if this is the last voting question
+                if (currentQuestionIndex === questions.length - 1) {
+                    // Last question - change button text to "End Game"
+                    document.getElementById('showResultsBtn').textContent = 'End Game';
+                } else {
+                    // Not last question - use "Show Results"
+                    document.getElementById('showResultsBtn').textContent = 'Show Results';
+                }
+                
+                updateGameDisplay();
+            } catch (error) {
+                console.error('Error presenting question for voting:', error);
+            }
+        }
+
+        function updateGameDisplay() {
+            let phaseName = 'Setup';
+            if (gamePhase === 'waiting_for_teams') {
+                phaseName = '⏳ Waiting for Teams';
+                // Show start answering button during waiting_for_teams
+                document.getElementById('startAnsweringBtn').style.display = 'inline-block';
+                document.getElementById('startVotingBtn').style.display = 'none';
+                document.getElementById('showResultsBtn').style.display = 'none';
+                document.getElementById('nextQuestionBtn').style.display = 'none';
+                // Show QR code during waiting phase
+                document.getElementById('qrCodeSection').style.display = 'block';
+            } else if (gamePhase === 'answering') {
+                phaseName = '📝 Answering Phase';
+                document.getElementById('startAnsweringBtn').style.display = 'none';
+                document.getElementById('startVotingBtn').style.display = 'none';
+                document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+                // Reset button text for next question
+                if (currentQuestionIndex === questions.length - 1) {
+                    document.getElementById('nextQuestionBtn').textContent = 'To Voting Phase';
+                } else {
+                    document.getElementById('nextQuestionBtn').textContent = 'Next Question';
+                }
+                // Hide QR code after game starts
+                document.getElementById('qrCodeSection').style.display = 'none';
+            } else if (gamePhase === 'answering_finished') {
+                phaseName = '⏸️ Answering Finished';
+                document.getElementById('startAnsweringBtn').style.display = 'none';
+                document.getElementById('startVotingBtn').style.display = 'none';
+                document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+                document.getElementById('nextQuestionBtn').textContent = 'Start Voting';
+                // Hide QR code after game starts
+                document.getElementById('qrCodeSection').style.display = 'none';
+            } else if (gamePhase === 'voting') {
+                phaseName = '🗳️ Voting Phase';
+                document.getElementById('startAnsweringBtn').style.display = 'none';
+                document.getElementById('startVotingBtn').style.display = 'none';
+                document.getElementById('showResultsBtn').style.display = 'inline-block';
+                document.getElementById('nextQuestionBtn').style.display = 'none';
+                // Hide QR code after game starts
+                document.getElementById('qrCodeSection').style.display = 'none';
+            }
+            
+            document.getElementById('phaseLabel').textContent = phaseName;
+            document.getElementById('currentQuestionNumber').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = questions.length;
+            
+            updateHostUIForPhase();
+        }
+
+        function updateHostUIForPhase() {
+            const statsAnswers = document.getElementById('statsAnswers');
+            const statsVotes = document.getElementById('statsVotes');
+            const answersTitle = document.getElementById('answersTitle');
+            const teamsDisplaySection = document.getElementById('teamsDisplaySection');
+            
+            if (gamePhase === 'waiting_for_teams') {
+                statsAnswers.style.display = 'block';
+                statsVotes.style.display = 'none';
+                teamsDisplaySection.style.display = 'block';
+                answersTitle.textContent = 'Received Answers';
+            } else if (gamePhase === 'answering') {
+                statsAnswers.style.display = 'block';
+                statsVotes.style.display = 'none';
+                teamsDisplaySection.style.display = 'none';
+                answersTitle.textContent = 'Received Answers';
+            } else if (gamePhase === 'voting') {
+                statsAnswers.style.display = 'none';
+                statsVotes.style.display = 'block';
+                teamsDisplaySection.style.display = 'none';
+                answersTitle.textContent = 'Voting Results';
+            } else {
+                teamsDisplaySection.style.display = 'none';
+            }
+        }
+
+        function updateHostTeamsDisplay(teams) {
+            const hostTeamsList = document.getElementById('hostTeamsList');
+            
+            if (teams) {
+                const teamNames = Object.keys(teams);
+                const teamsHtml = teamNames.map(teamName => `
+                    <div class="scoreboard-entry">
+                        <span class="team-name">👥 ${teamName}</span>
+                    </div>
+                `).join('');
+                
+                hostTeamsList.innerHTML = teamsHtml;
+            } else {
+                hostTeamsList.innerHTML = '<p class="empty-state">Waiting for teams...</p>';
+            }
+        }
+
+        async function startAnsweringPhase() {
+            // Only allow transition from waiting_for_teams
+            if (gamePhase !== 'waiting_for_teams') {
+                alert('You can only start the answering phase when teams are allowed to join.');
+                return;
+            }
+            gamePhase = 'answering';
+            currentQuestionIndex = 0;
+            // Clear kickAll flag so teams are not kicked anymore
+            await set(getGameRef('kickAll'), false);
+            
+            // Read answering time from input and save to database
+            const answeringTimeInput = document.getElementById('answeringTimeInput');
+            const answeringTime = parseInt(answeringTimeInput.value) || 300;
+            await set(getGameRef('answeringTime'), answeringTime);
+            
+            await set(getGameRef('phase'), gamePhase);
+            await presentQuestion();
+            updateGameDisplay();
+        }
+
+        async function startVotingPhase() {
+            gamePhase = 'voting';
+            
+            // Read voting time from input and save to database
+            const votingTimeInput = document.getElementById('votingTimeInput');
+            const votingTime = parseInt(votingTimeInput.value) || 90;
+            await set(getGameRef('votingTime'), votingTime);
+            
+            await set(getGameRef('phase'), gamePhase);
+            currentQuestionIndex = 0;
+            // Reset button text
+            document.getElementById('nextQuestionBtn').textContent = 'Next Question';
+            document.getElementById('startVotingBtn').style.display = 'none';
+            document.getElementById('showResultsBtn').style.display = 'none';
+            document.getElementById('nextQuestionBtn').style.display = 'none';
+            await presentQuestionForVoting();
+        }
+
+        async function nextQuestion() {
+            // Check if button says "End Answering Phase" - if so, transition to that phase
+            const buttonText = document.getElementById('nextQuestionBtn').textContent;
+            
+            if (buttonText === 'To Voting Phase') {
+                // Set phase to answering_finished, clients will see transition screen
+                gamePhase = 'answering_finished';
+                await set(getGameRef('phase'), gamePhase);
+                // Reset button text for next action
+                document.getElementById('nextQuestionBtn').textContent = 'Start Voting';
+                return;
+            } else if (buttonText === 'Start Voting') {
+                await startVotingPhase();
+                return;
+            }
+            
+            // If coming from results phase, go back to voting phase
+            if (gamePhase === 'results') {
+                gamePhase = 'voting';
+                await set(getGameRef('phase'), gamePhase);
+                currentQuestionIndex++;
+                
+                if (currentQuestionIndex < questions.length) {
+                    await presentQuestionForVoting();
+                } else {
+                    // Voting finished
+                    alert('Game Over!');
+                    gamePhase = 'finished';
+                    await set(getGameRef('phase'), gamePhase);
+                    backToSetup();
+                }
+            } else if (gamePhase === 'answering_finished') {
+                // Transition from answer phase to voting phase - start voting from first question
+                gamePhase = 'voting';
+                await set(getGameRef('phase'), gamePhase);
+                currentQuestionIndex = 0; // Reset to first question for voting
+                await presentQuestionForVoting();
+            } else {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) {
+                    if (gamePhase === 'answering') {
+                        // Check if next question is the last question
+                        if (currentQuestionIndex === questions.length - 1) {
+                            // Show last question but change button text to "To Voting Phase"
+                            await presentQuestion();
+                            document.getElementById('nextQuestionBtn').textContent = 'To Voting Phase';
+                        } else {
+                            // Not last question, proceed normally
+                            await presentQuestion();
+                        }
+                    } else if (gamePhase === 'voting') {
+                        await presentQuestionForVoting();
+                    }
+                } else {
+                    if (gamePhase === 'answering') {
+                        // Show button to manually start voting
+                        document.getElementById('startVotingBtn').style.display = 'inline-block';
+                        document.getElementById('showResultsBtn').style.display = 'none';
+                        document.getElementById('nextQuestionBtn').style.display = 'none';
+                    } else {
+                        // Voting finished
+                        alert('Game Over!');
+                        gamePhase = 'finished';
+                        await set(getGameRef('phase'), gamePhase);
+                        backToSetup();
+                    }
+                }
+            }
+        }
+
+        async function showResults(isGameEnding = false) {
+            console.log('=== showResults() CALLED ===');
+            console.log('isGameEnding:', isGameEnding);
+            console.log('Current question:', currentQuestion);
+            
+            if (!currentQuestion) {
+                console.error('❌ No current question');
+                return;
+            }
+            
+            try {
+                console.log('📊 Fetching votes from:', `votes/${currentQuestion.id}`);
+                const votesSnapshot = await get(getGameRef(`votes/${currentQuestion.id}`));
+                const votes = votesSnapshot.val() || {};
+                
+                const scores = {};
+                const voteCountByTeam = {};  // Track votes received by each answer
+                
+                // First pass: Count votes received by each answer/team
+                Object.entries(votes).forEach(([votingTeam, votedFor]) => {
+                    if (!voteCountByTeam[votedFor]) {
+                        voteCountByTeam[votedFor] = 0;
+                    }
+                    voteCountByTeam[votedFor]++;
+                });
+                
+                // Second pass: Award points
+                Object.entries(votes).forEach(([votingTeam, votedFor]) => {
+                    if (!scores[votingTeam]) scores[votingTeam] = 0;
+                    if (votedFor === 'Solution') {
+                        // This team voted for the correct answer: 3 points
+                        scores[votingTeam] += 3;
+                    }
+                });
+                
+                // Third pass: Award points for answers that received votes
+                const answersSnapshot = await get(getGameRef(`answers/${currentQuestion.id}`));
+                const answers = answersSnapshot.val() || {};
+                
+                // For each team's answer, give them 1 point per vote received
+                Object.entries(answers).forEach(([teamName, answerData]) => {
+                    if (teamName !== 'Solution') {
+                        // Find how many votes this answer text received
+                        const votesReceived = voteCountByTeam[teamName] || 0;
+                        if (votesReceived > 0) {
+                            if (!scores[teamName]) scores[teamName] = 0;
+                            scores[teamName] += votesReceived;
+                        }
+                    }
+                });
+                
+                // Update scores in database - add points to each team
+                const scoresRef = getGameRef('scores');
+                const scoresSnapshot = await get(scoresRef);
+                const currentScores = scoresSnapshot.val() || {};
+                
+                Object.entries(scores).forEach(([team, points]) => {
+                    currentScores[team] = (currentScores[team] || 0) + points;
+                });
+                
+                await set(scoresRef, currentScores);
+                
+                // Check if this is the last question and game is ending
+                if (isGameEnding) {
+                    // Show celebration screen with top 3 teams
+                    await showCelebrationScreen(currentScores);
+                } else {
+                    // Set game phase to 'results' to show leaderboard on client
+                    await set(getGameRef('phase'), 'results');
+                    
+                    // Update button visibility
+                    document.getElementById('showResultsBtn').style.display = 'none';
+                    document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+                }
+                
+            } catch (error) {
+                console.error('Error saving scores:', error);
+                alert('Error saving scores: ' + error.message);
+            }
+        }
+
+        async function showCelebrationScreen(finalScores) {
+            // Don't show celebration screen on host, only send to clients via Firebase phase
+            gamePhase = 'finished';
+            await set(getGameRef('phase'), 'celebration');
+            
+            // Update button visibility to show "New Game" button
+            document.getElementById('showResultsBtn').style.display = 'none';
+            document.getElementById('nextQuestionBtn').style.display = 'none';
+            document.getElementById('startVotingBtn').style.display = 'none';
+            document.getElementById('newGameBtn').style.display = 'inline-block';
+        }
+
+        function backToSetup() {
+            gameStarted = false;
+            gamePhase = 'setup';
+            currentQuestion = null;
+            currentQuestionIndex = 0;
+            loadQuestionsFromStorage();
+            document.getElementById('setupScreen').classList.add('active');
+            document.getElementById('gameScreen').classList.remove('active');
+            updateQuestionsDisplay();
+            
+            // Reset button visibility
+            document.getElementById('newGameBtn').style.display = 'none';
+            document.getElementById('showResultsBtn').style.display = 'none';
+            document.getElementById('nextQuestionBtn').style.display = 'none';
+            document.getElementById('startVotingBtn').style.display = 'none';
+        }
+
+        async function resetGame() {
+            if (confirm('Really reset the whole game? This cannot be undone.')) {
+                try {
+                    // Remove all game data except settings
+                    await remove(getGameRef('questions'));
+                    await remove(getGameRef('teams'));
+                    await remove(getGameRef('answers'));
+                    await remove(getGameRef('votes'));
+                    await remove(getGameRef('scores'));
+                    await remove(getGameRef('currentQuestion'));
+                    await remove(getGameRef('roundFinished'));
+                    await remove(getGameRef('phase'));
+                    await remove(getGameRef('seed'));
+                    await remove(getGameRef('kickAll'));
+                    
+                    alert('Game has been reset');
+                    backToSetup();
+                } catch (error) {
+                    console.error('Error resetting game:', error);
+                }
+            }
+        }
+
+        window.clearAllQuestions = function() {
+            if (confirm('Delete all questions? This cannot be undone.')) {
+                questions = [];
+                localStorage.removeItem('wfeier_questions');
+                updateQuestionsDisplay();
+                alert('All questions deleted');
+            }
+        };
+
+        function startHostTimerDisplay(question) {
+            if (!question || !question.timerStartTime || !question.timerDuration) return;
+            
+            // Stop any existing timer
+            stopHostTimerDisplay();
+            
+            // Show timer display
+            const timerDisplay = document.getElementById('hostTimerDisplay');
+            if (timerDisplay) timerDisplay.style.display = 'flex';
+            
+            // Update immediately
+            updateHostTimerDisplay(question);
+            
+            // Update every 100ms
+            hostTimerInterval = setInterval(() => {
+                updateHostTimerDisplay(hostCurrentQuestion);
+            }, 100);
+        }
+
+        function updateHostTimerDisplay(question) {
+            if (!question || !question.timerStartTime || !question.timerDuration) return;
+            
+            const now = Math.floor(Date.now() / 1000);
+            const elapsedSeconds = now - question.timerStartTime;
+            const remainingSeconds = Math.max(0, question.timerDuration - elapsedSeconds);
+            
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+            
+            const timerMinutesEl = document.getElementById('hostTimerMinutes');
+            const timerSecondsEl = document.getElementById('hostTimerSeconds');
+            if (timerMinutesEl) {
+                timerMinutesEl.textContent = minutes;
+            }
+            if (timerSecondsEl) {
+                timerSecondsEl.textContent = seconds.toString().padStart(2, '0');
+            }
+            
+            // Change color as time runs out
+            const timerDisplay = document.getElementById('hostTimerDisplay');
+            if (timerDisplay) {
+                if (remainingSeconds <= 10) {
+                    timerDisplay.style.color = '#ef4444'; // Red
+                } else if (remainingSeconds <= 20) {
+                    timerDisplay.style.color = '#f97316'; // Orange
+                } else {
+                    timerDisplay.style.color = '#10b981'; // Green
+                }
+            }
+        }
+
+        function stopHostTimerDisplay() {
+            if (hostTimerInterval) {
+                clearInterval(hostTimerInterval);
+                hostTimerInterval = null;
+            }
+            const timerDisplay = document.getElementById('hostTimerDisplay');
+            if (timerDisplay) timerDisplay.style.display = 'none';
+        }
+
+        function startListeners() {
+            // Listen for game phase changes
+            onValue(getGameRef('phase'), (snapshot) => {
+                const newPhase = snapshot.val();
+                if (newPhase) {
+                    gamePhase = newPhase;
+                    console.log('🔄 Host phase updated to:', gamePhase);
+                    updateGameDisplay();
+                }
+            });
+
+            // Listen for current question
+            onValue(getGameRef('currentQuestion'), (snapshot) => {
+                currentQuestion = snapshot.val();
+                hostCurrentQuestion = currentQuestion;
+                
+                // Start timer display if question has timer info
+                if (currentQuestion && currentQuestion.timerStartTime && currentQuestion.timerDuration) {
+                    startHostTimerDisplay(currentQuestion);
+                } else {
+                    stopHostTimerDisplay();
+                }
+                
+                updateCurrentQuestionDisplay();
+            });
+
+            // Listen for answers
+            onValue(getGameRef('answers'), (snapshot) => {
+                const allAnswers = snapshot.val();
+                updateAnswersDisplay(allAnswers);
+                updateStats(allAnswers);
+            });
+
+            // Listen for scores
+            onValue(getGameRef('scores'), (snapshot) => {
+                const scores = snapshot.val();
+                updateScoreboard(scores);
+            });
+
+            // Listen for teams
+            onValue(getGameRef('teams'), (snapshot) => {
+                const teams = snapshot.val();
+                const teamCount = teams ? Object.keys(teams).length : 0;
+                document.getElementById('teamCount').textContent = teamCount;
+                
+                // Update teams display in setup phase
+                updateHostTeamsDisplay(teams);
+            });
+        }
+
+        function updateCurrentQuestionDisplay() {
+            const display = document.getElementById('currentQuestionDisplay');
+            
+            if (currentQuestion) {
+                display.innerHTML = `
+                    <div style="text-align: left;">
+                        <h3 style="text-align: center; margin-bottom: 15px;">${currentQuestion.text}</h3>
+                        <p><strong>Correct Answer:</strong> ${currentQuestion.correct}</p>
+                    </div>
+                `;
+            } else {
+                display.innerHTML = '<p class="empty-state">No question active</p>';
+            }
+        }
+
+        function updateAnswersDisplay(allAnswers) {
+            const answersList = document.getElementById('answersList');
+
+            if (!allAnswers || !currentQuestion || !allAnswers[currentQuestion.id]) {
+                let emptyMsg = 'Waiting for answers from teams...';
+                if (gamePhase === 'voting') {
+                    emptyMsg = 'Waiting for votes from teams...';
+                }
+                answersList.innerHTML = `<p class="empty-state">${emptyMsg}</p>`;
+                return;
+            }
+
+            const answers = allAnswers[currentQuestion.id];
+            let html = '';
+
+            Object.entries(answers).forEach(([team, answerData]) => {
+                // No need to skip any team; show all answers
+                
+                const isCorrect = answerData.text.toLowerCase() === currentQuestion.correct.toLowerCase();
+                
+                if (gamePhase === 'answering') {
+                    // Show answers with vote count
+                    html += `
+                        <div class="answer-item ${isCorrect ? 'correct' : ''}">
+                            <div class="answer-info">
+                                <div class="answer-team">${team}</div>
+                                <div class="answer-text">${answerData.text}</div>
+                            </div>
+                            <div class="answer-votes">${answerData.votes || 0} 🗳</div>
+                        </div>
+                    `;
+                } else if (gamePhase === 'voting') {
+                    // Show vote count only (voting phase)
+                    html += `
+                        <div class="answer-item">
+                            <div class="answer-info">
+                                <div class="answer-team">${team}</div>
+                                <div class="answer-text">${answerData.text}</div>
+                            </div>
+                            <div class="answer-votes">${answerData.votes || 0} Votes</div>
+                        </div>
+                    `;
+                }
+            });
+
+            answersList.innerHTML = html;
+        }
+
+        function updateScoreboard(scores) {
+            const scoreboard = document.getElementById('finalScoreboard');
+
+            if (!scores || Object.keys(scores).length === 0) {
+                scoreboard.innerHTML = '<p class="empty-state">No scores yet</p>';
+                return;
+            }
+
+            const sorted = Object.entries(scores)
+                .sort((a, b) => b[1] - a[1])
+                .map((entry, index) => `
+                    <div class="answer-item">
+                        <div class="answer-info">
+                            <div class="answer-team">#${index + 1} ${entry[0]}</div>
+                        </div>
+                        <div class="answer-votes">${entry[1]} Points</div>
+                    </div>
+                `)
+                .join('');
+
+            scoreboard.innerHTML = sorted;
+        }
+
+        function updateStats(allAnswers) {
+            let totalAnswers = 0;
+            let totalVotes = 0;
+
+            if (allAnswers) {
+                Object.values(allAnswers).forEach(question => {
+                    Object.values(question).forEach(answer => {
+                        totalAnswers++;
+                        totalVotes += answer.votes || 0;
+                    });
+                });
+            }
+
+            document.getElementById('answerCount').textContent = totalAnswers;
+            document.getElementById('voteCount').textContent = totalVotes;
+        }
+    </script>
+</body>
+</html>

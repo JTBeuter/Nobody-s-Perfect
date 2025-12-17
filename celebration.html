@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Over - Nobody's Perfect</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        // Get Session Code
+        const urlParams = new URLSearchParams(window.location.search);
+        let sessionCode = urlParams.get('session');
+        
+        // Try to get from localStorage if not in URL (fallback for players)
+        if (!sessionCode) {
+            sessionCode = localStorage.getItem('wfeier_sessionCode');
+        }
+
+        if (!sessionCode) {
+            alert('No session code found! Redirecting to main page.');
+            window.location.href = 'index.html';
+        }
+
+        // Helper to get Firebase Ref
+        function getGameRef(path) {
+            if (path.startsWith('/')) path = path.substring(1);
+            return ref(db, `games/${sessionCode}/${path}`);
+        }
+
+        // Listen for settings changes (Background, Theme, Scale)
+        onValue(getGameRef('settings'), (snapshot) => {
+            const settings = snapshot.val() || {};
+            
+            // Apply Background Image
+            if (settings.background) {
+                document.body.style.setProperty('--custom-bg', `url('${settings.background}')`);
+            } else {
+                document.body.style.removeProperty('--custom-bg');
+            }
+
+            // Apply Scale/Pattern
+            const scale = settings.bgScale || 6;
+            if (scale > 1) {
+                document.body.style.backgroundSize = `${100 / scale}vw`;
+                document.body.style.backgroundRepeat = 'repeat';
+            } else {
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundRepeat = 'no-repeat';
+            }
+
+            // Apply Theme Colors
+            if (settings.theme) {
+                const root = document.documentElement;
+                if (settings.theme.primary) {
+                    root.style.setProperty('--primary-color', settings.theme.primary);
+                }
+                if (settings.theme.secondary) {
+                    root.style.setProperty('--secondary-color', settings.theme.secondary);
+                }
+            } else {
+                const root = document.documentElement;
+                root.style.removeProperty('--primary-color');
+                root.style.removeProperty('--secondary-color');
+            }
+        });
+
+        function loadCelebrationData() {
+            get(getGameRef('scores')).then(snapshot => {
+                const scores = snapshot.val() || {};
+                const sortedTeams = Object.entries(scores)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3);
+                
+                if (sortedTeams.length >= 1) {
+                    document.getElementById('firstTeamName').textContent = sortedTeams[0][0];
+                    document.getElementById('firstTeamScore').textContent = sortedTeams[0][1];
+                }
+                
+                if (sortedTeams.length >= 2) {
+                    document.getElementById('secondTeamName').textContent = sortedTeams[1][0];
+                    document.getElementById('secondTeamScore').textContent = sortedTeams[1][1];
+                }
+                
+                if (sortedTeams.length >= 3) {
+                    document.getElementById('thirdTeamName').textContent = sortedTeams[2][0];
+                    document.getElementById('thirdTeamScore').textContent = sortedTeams[2][1];
+                }
+            });
+        }
+
+        function leaveGame() {
+            localStorage.removeItem('wfeier_teamName');
+            localStorage.removeItem('wfeier_sessionCode');
+            window.location.href = 'index.html';
+        }
+
+        // Attach listener after DOM load
+        window.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('leaveGameBtn');
+            if (btn) btn.addEventListener('click', leaveGame);
+        });
+
+        loadCelebrationData();
+    </script>
+</head>
+<body>
+    <div class="celebration-container">
+        <h1 style="font-size: 3em; margin-bottom: 30px; animation: pulse 0.6s ease-in-out; background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border-color); display: inline-block; margin-left: auto; margin-right: auto;">🎉 Game Over! 🎉</h1>
+        <div class="podium">
+            <!-- Silver (2nd place) -->
+            <div class="podium-slot silver">
+                <div class="medal">🥈</div>
+                <h3 id="secondTeamName">Team</h3>
+                <p id="secondTeamScore">0</p>
+                <div class="place-label">2nd Place</div>
+            </div>
+            <!-- Gold (1st place) -->
+            <div class="podium-slot gold">
+                <div class="medal">🥇</div>
+                <h3 id="firstTeamName">Team</h3>
+                <p id="firstTeamScore">0</p>
+                <div class="place-label">1st Place</div>
+            </div>
+            <!-- Bronze (3rd place) -->
+            <div class="podium-slot bronze">
+                <div class="medal">🥉</div>
+                <h3 id="thirdTeamName">Team</h3>
+                <p id="thirdTeamScore">0</p>
+                <div class="place-label">3rd Place</div>
+            </div>
+        </div>
+        <button id="leaveGameBtn" class="btn btn-secondary" style="margin-top: 40px; max-width: 200px;">Leave Game</button>
+    </div>
+</body>
+</html>

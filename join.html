@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nobody's Perfect - Player</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen active">
+            <div class="login-box">
+                <h1>🎮 Nobody's Perfect</h1>
+                <p class="subtitle">Join with your team!</p>
+                <div id="setupBlockMessage" style="display:none; color:#ef4444; font-weight:bold; margin-bottom:15px;">The game is being prepared. Please wait for the host to start.</div>
+                
+                <div class="input-group" id="sessionInputGroup">
+                    <label for="sessionCode">Session Code:</label>
+                    <input 
+                        type="text" 
+                        id="sessionCode" 
+                        placeholder="Enter 5-digit code"
+                        maxlength="5"
+                        style="text-transform: uppercase;"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="teamName">Team Name:</label>
+                    <input 
+                        type="text" 
+                        id="teamName" 
+                        placeholder="e.g. The Winners"
+                        maxlength="20"
+                    >
+                </div>
+                <button id="joinBtn" class="btn btn-primary" disabled>Loading...</button>
+            </div>
+        </div>
+
+        <!-- Waiting Lobby Screen -->
+        <div id="waitingLobbyScreen" class="screen">
+            <div class="lobby-container">
+                <h1 style="font-size: 2.8em;">⏳ Waiting for Game</h1>
+                <p style="font-size: 1.1em;">The host is preparing the game...</p>
+                <p style="color: var(--text-color); opacity: 0.7;">Session: <span id="lobbySessionCode">...</span></p>
+                
+                <div class="waiting-teams-display">
+                    <h3 style="font-size: 1.3em;">Joined Teams:</h3>
+                    <div id="lobbyTeamsList" class="teams-grid">
+                        <p class="empty-state">Loading teams...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <!-- Header with Score -->
+            <header class="game-header">
+                <div class="team-info">
+                    <h2 id="currentTeam"></h2>
+                    <div class="score-display">
+                        <span id="teamScore">0</span> Points
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div id="timerDisplay" style="font-size: 1.5em; font-weight: bold; color: #10b981; display: none;">
+                        ⏱️ <span id="timerMinutes">0</span>:<span id="timerSeconds">00</span>
+                    </div>
+                    <button id="leaveGameBtn" class="btn btn-secondary" style="width: auto; padding: 8px 15px; font-size: 0.9em;">Leave</button>
+                </div>
+            </header>
+
+            <!-- Question Display -->
+            <div class="question-section">
+                <div id="questionArea" class="question-box">
+                    <h3>Waiting for question...</h3>
+                </div>
+            </div>
+
+            <!-- Answer Input Section -->
+            <div class="answer-section">
+                <div id="answerForm" style="display: none;">
+                    <h4>Your Answer:</h4>
+                    <input 
+                        type="text" 
+                        id="answerInput" 
+                        placeholder="Enter your answer..."
+                        maxlength="100"
+                    >
+                    <button id="submitAnswerBtn" class="btn btn-primary">Submit Answer</button>
+                </div>
+                <div id="answerSubmitted" style="display: none;" class="info-box">
+                    ✓ Your answer has been submitted
+                </div>
+            </div>
+
+            <!-- Voting Section -->
+            <div class="voting-section">
+                <div class="voting-buttons">
+                    <h4 style="margin-top: 0;">Vote:</h4>
+                    <div id="votingArea">
+                        <p class="empty-state">Waiting for answers to vote...</p>
+                    </div>
+                    <!-- Submit Vote Button added via JS -->
+                </div>
+            </div>
+
+            <!-- Scoreboard -->
+            <div class="scoreboard-section">
+                <div class="scoreboard">
+                    <h4 style="margin-top: 0;">Scoreboard:</h4>
+                    <div id="scoreBoard">
+                        <p class="empty-state">No teams yet...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transition Screen (Answer to Voting) -->
+        <div id="transitionScreen" class="screen">
+            <div class="transition-box" style="margin-top: 80px; padding: 20px;">
+                <h1 style="font-size: 3em; margin-bottom: 40px; background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border-color);">⏸️ Answering Finished</h1>
+                <div style="background: var(--card-bg); padding: 50px; border-radius: 20px; max-width: 600px; margin: 0 auto; border: 1px solid var(--border-color);">
+                    <h2 style="color: var(--text-color); font-size: 1.8em; margin-bottom: 15px; text-align: center;">Answers are in!</h2>
+                    <p style="color: #cbd5e1; font-size: 1.1em; text-align: center; margin-bottom: 20px;">All teams have submitted their answers. It's getting exciting!</p>
+                    <p style="color: #94a3b8; font-size: 1em; text-align: center;">The host will start the voting phase shortly, where you can vote for the best answer.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time's Up Screen -->
+        <div id="timesUpScreen" class="screen">
+            <div class="transition-box" style="margin-top: 80px;">
+                <h1 style="font-size: 3em; margin-bottom: 40px; background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border-color);">⏱️ Time's Up!</h1>
+                <div id="timesUpAnswerBox" style="padding: 50px; border-radius: 20px; max-width: 600px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--border-color);">
+                    <!-- Answering Phase Display -->
+                    <div id="timesUpAnswerContent" style="display: none; text-align: center;">
+                        <p style="color: #cbd5e1; font-size: 0.95em; margin-bottom: 25px;">Your Answer:</p>
+                        <p id="timesUpAnswerText" style="color: var(--text-color); font-size: 1.8em; font-weight: bold; text-align: center; background: rgba(0,0,0,0.25); padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-color);"></p>
+                        <p style="color: #cbd5e1; font-size: 1.1em; text-align: center;">The host is preparing the next phase...</p>
+                    </div>
+                    <!-- Voting Phase Display -->
+                    <div id="timesUpVoteContent" style="display: none; text-align: center;">
+                        <div id="timesUpVoteAnswerBox" style="background: rgba(0,0,0,0.25); padding: 30px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color);">
+                            <p id="timesUpVoteIndicator" style="color: var(--primary-color); font-size: 2.5em; margin-bottom: 15px;"></p>
+                            <p id="timesUpVoteText" style="color: var(--text-color); font-size: 2em; font-weight: bold; word-wrap: break-word;"></p>
+                        </div>
+                        <p id="timesUpVoteTeamName" style="color: #cbd5e1; font-size: 1.1em; margin-bottom: 20px;"></p>
+                        <p style="color: #cbd5e1; font-size: 1.1em; text-align: center;">The host is preparing the next phase...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboardScreen" class="screen">
+            <div class="leaderboard-container">
+                <div class="leaderboard-header">
+                    <h1>🏆 Leaderboard</h1>
+                </div>
+                <div class="leaderboard-content">
+                    <div id="leaderboardDisplay" class="scoreboard">
+                        <p class="empty-state">Loading leaderboard...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .transition-box {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .transition-box h1 {
+            color: var(--text-color);
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .transition-box .subtitle {
+            color: var(--text-secondary);
+            font-size: 20px;
+            margin-bottom: 40px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getDatabase, ref, set, update, onValue, child, get, runTransaction } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        console.log("Starting Join Script...");
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        let currentTeamName = null;
+        let currentUser = null;
+        let roundFinished = false;
+        let currentQuestion = null;
+        let teamVote = null; 
+        let selectedVote = null; 
+        let teamVoteData = null; 
+        let teamAnswer = null; 
+        let gamePhase = 'setup'; 
+        let timerExpired = false; 
+        let sessionCode = null;
+        
+        let timerInterval = null;
+        let timerRemaining = 0;
+        let timerStartTime = null;
+
+        // --- Helper Functions ---
+
+        function getGameRef(path) {
+            if (!sessionCode) {
+                console.error("No session code set!");
+                return null;
+            }
+            if (path.startsWith('/')) path = path.substring(1);
+            return ref(db, `games/${sessionCode}/${path}`);
+        }
+
+        function checkAndRestoreSession() {
+            const savedTeamName = localStorage.getItem('wfeier_teamName');
+            const savedSessionCode = localStorage.getItem('wfeier_sessionCode');
+            
+            // Prefer URL session
+            if (sessionCode && savedSessionCode && sessionCode !== savedSessionCode) {
+                return;
+            }
+
+            // Restore session code if missing
+            if (!sessionCode && savedSessionCode) {
+                sessionCode = savedSessionCode;
+                const sessionInput = document.getElementById('sessionCode');
+                if(sessionInput) sessionInput.value = sessionCode;
+            }
+
+            if (sessionCode && savedTeamName) {
+                const teamRef = getGameRef(`teams/${savedTeamName}`);
+                const phaseRef = getGameRef('phase');
+                
+                if (!teamRef || !phaseRef) return;
+
+                Promise.all([get(teamRef), get(phaseRef)]).then(([teamSnap, phaseSnap]) => {
+                    const teamExists = teamSnap.exists();
+                    const phase = phaseSnap.val();
+                    
+                    if (teamExists && phase && phase !== 'setup') {
+                        currentTeamName = savedTeamName;
+                        gamePhase = phase;
+                        console.log('✓ Session restored:', currentTeamName);
+                        showGameScreen();
+                        updateUIForPhase();
+                        startListeners();
+                    } else {
+                        console.log("Session invalid or phase is setup, clearing.");
+                        localStorage.removeItem('wfeier_teamName');
+                    }
+                }).catch(error => {
+                    console.error('Error checking team session:', error);
+                });
+            }
+        }
+
+        async function joinGame() {
+            console.log("Attempting to join game...");
+            const teamNameInput = document.getElementById('teamName');
+            const sessionCodeInput = document.getElementById('sessionCode');
+            const teamName = teamNameInput.value.trim();
+            const enteredSessionCode = sessionCodeInput.value.trim().toUpperCase();
+
+            if (!enteredSessionCode || enteredSessionCode.length !== 5) {
+                alert('Please enter a valid 5-digit session code');
+                return;
+            }
+            if (!teamName) {
+                alert('Please enter a team name');
+                return;
+            }
+
+            sessionCode = enteredSessionCode;
+            
+            try {
+                // Verify session exists
+                const sessionRef = ref(db, `games/${sessionCode}`);
+                const sessionSnapshot = await get(sessionRef);
+                
+                if (!sessionSnapshot.exists()) {
+                    alert(`Game session '${sessionCode}' not found. Please check the code.`);
+                    return;
+                }
+
+                const phaseRef = getGameRef('phase');
+                const phaseSnapshot = await get(phaseRef);
+                const phase = phaseSnapshot.val();
+                
+                if (phase !== 'waiting_for_teams') {
+                    alert('The game has already started or is not open for new teams.');
+                    return;
+                }
+
+                currentTeamName = teamName;
+                gamePhase = phase;
+                localStorage.setItem('wfeier_teamName', teamName);
+                localStorage.setItem('wfeier_sessionCode', sessionCode);
+                
+                await set(getGameRef(`teams/${teamName}`), {
+                    name: teamName,
+                    joinedAt: new Date().toISOString()
+                });
+                
+                const scoreRef = getGameRef(`scores/${teamName}`);
+                const snapshot = await get(scoreRef);
+                if (!snapshot.exists()) await set(scoreRef, 0);
+                
+                console.log("Joined successfully!");
+                showGameScreen();
+                updateUIForPhase();
+                startListeners();
+            } catch (error) {
+                console.error("Join failed:", error);
+                alert("Failed to join game: " + error.message);
+            }
+        }
+
+        async function submitAnswer(isAutoSubmit = false) {
+            const answerText = document.getElementById('answerInput').value.trim();
+            if (!answerText) {
+                if (!isAutoSubmit) alert('Please enter an answer');
+                return;
+            }
+
+            try {
+                const questionRef = getGameRef('currentQuestion');
+                const snapshot = await get(questionRef);
+                const question = snapshot.val();
+
+                if (!question) {
+                    if (!isAutoSubmit) alert('No active question');
+                    return;
+                }
+
+                const now = Math.floor(Date.now() / 1000);
+                const elapsedSeconds = now - question.timerStartTime;
+                const remainingSeconds = question.timerDuration - elapsedSeconds;
+
+                if (remainingSeconds <= 0 && !isAutoSubmit) {
+                    alert('Time is up!');
+                    return;
+                }
+
+                teamAnswer = answerText;
+                
+                await set(getGameRef(`answers/${question.id}/${currentTeamName}`), {
+                    text: answerText,
+                    votes: 0,
+                    submittedAt: new Date().toISOString()
+                });
+
+                document.getElementById('answerInput').value = '';
+                document.getElementById('answerForm').style.display = 'none';
+                document.getElementById('answerSubmitted').style.display = 'block';
+            } catch (error) {
+                console.error('Submit error:', error);
+                alert('Error submitting answer: ' + error.message);
+            }
+        }
+
+        function showGameScreen() {
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('currentTeam').textContent = `Team: ${currentTeamName}`;
+            document.getElementById('lobbySessionCode').textContent = sessionCode;
+        }
+
+        function updateLobbyTeamsList() {
+            const ref = getGameRef('teams');
+            if(!ref) return;
+            
+            get(ref).then(snapshot => {
+                const teams = snapshot.val();
+                const lobbyTeamsList = document.getElementById('lobbyTeamsList');
+                if(!lobbyTeamsList) return;
+                
+                if (teams) {
+                    const teamNames = Object.keys(teams);
+                    const teamsHtml = teamNames.map(teamName => `
+                        <div class="team-card ${teamName === currentTeamName ? 'own-team' : ''}">
+                            <div class="team-icon">👥</div>
+                            <div class="team-name-text">${teamName}</div>
+                        </div>
+                    `).join('');
+                    lobbyTeamsList.innerHTML = teamsHtml;
+                } else {
+                    lobbyTeamsList.innerHTML = '<p class="empty-state">Waiting for teams...</p>';
+                }
+            }).catch(e => console.error("Error loading teams:", e));
+        }
+
+        function updateLeaderboardDisplay() {
+            const ref = getGameRef('scores');
+            if(!ref) return;
+
+            get(ref).then(snapshot => {
+                const scores = snapshot.val() || {};
+                const leaderboardDisplay = document.getElementById('leaderboardDisplay');
+                if(!leaderboardDisplay) return;
+                
+                if (Object.keys(scores).length === 0) {
+                    leaderboardDisplay.innerHTML = '<p class="empty-state">No teams yet...</p>';
+                    return;
+                }
+                
+                const sortedTeams = Object.entries(scores)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([team, score], index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                        const isOwnTeam = team === currentTeamName ? 'own-team' : '';
+                        return `
+                            <div class="scoreboard-entry ${isOwnTeam}">
+                                <span class="medal">${medal}</span>
+                                <span class="team-name">${team}</span>
+                                <span class="team-score">${score} Points</span>
+                            </div>
+                        `;
+                    }).join('');
+                
+                leaderboardDisplay.innerHTML = sortedTeams;
+            });
+        }
+
+        function selectVote(teamName) {
+            if (teamVote) return; 
+            selectedVote = teamName;
+            updateVotingDisplay();
+        }
+
+        async function submitVote() {
+            if (!selectedVote) return;
+            if (teamVote) return;
+
+            try {
+                const questionId = currentQuestion.id;
+                const answerRef = getGameRef(`answers/${questionId}/${selectedVote}`);
+                const answerSnapshot = await get(answerRef);
+                const answerData = answerSnapshot.val();
+
+                await set(getGameRef(`votes/${questionId}/${currentTeamName}`), selectedVote);
+                
+                const voteRef = getGameRef(`answers/${questionId}/${selectedVote}/votes`);
+                await runTransaction(voteRef, (current) => {
+                    return (current || 0) + 1;
+                });
+
+                teamVote = selectedVote;
+                
+                if (answerData) {
+                    const isCorrect = selectedVote === 'Solution' || (currentQuestion && answerData.text === currentQuestion.correct);
+                    teamVoteData = {
+                        teamName: selectedVote,
+                        answerText: answerData.text,
+                        isCorrect: isCorrect
+                    };
+                }
+                updateVotingDisplay();
+            } catch (error) {
+                console.error('Voting error:', error);
+                alert('Error submitting vote');
+            }
+        }
+
+        function updateVotingDisplay() {
+            const votingArea = document.getElementById('votingArea');
+            if(!votingArea) return;
+            votingArea.innerHTML = '';
+            
+            if (!roundFinished || !currentQuestion) {
+                votingArea.innerHTML = '<p class="empty-state">Waiting for answers to be revealed...</p>';
+                return;
+            }
+            
+            get(getGameRef('seed')).then(seedSnapshot => {
+                const gameSeed = seedSnapshot.val() || '';
+                get(getGameRef('answers')).then(snapshot => {
+                    const allAnswers = snapshot.val();
+                    get(getGameRef(`votes/${currentQuestion.id}/${currentTeamName}`)).then(voteSnapshot => {
+                        teamVote = voteSnapshot.val();
+                        
+                        if (teamVote) {
+                            selectedVote = teamVote;
+                            if (allAnswers && allAnswers[currentQuestion.id] && allAnswers[currentQuestion.id][teamVote]) {
+                                const answerData = allAnswers[currentQuestion.id][teamVote];
+                                const isCorrect = teamVote === 'Solution' || (currentQuestion && answerData.text === currentQuestion.correct);
+                                teamVoteData = {
+                                    teamName: teamVote,
+                                    answerText: answerData.text,
+                                    isCorrect: isCorrect
+                                };
+                            }
+                        }
+
+                        if (allAnswers && allAnswers[currentQuestion.id]) {
+                            const teamAnswers = allAnswers[currentQuestion.id];
+                            let answerArr = Object.entries(teamAnswers).filter(([team]) => team !== currentTeamName);
+                            
+                            function seededRandom(seed) { let x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+                            function stringToSeed(str) {
+                                let hash = 0;
+                                for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; }
+                                return Math.abs(hash);
+                            }
+                            function seededShuffle(array, seed) {
+                                let arr = array.slice();
+                                for (let i = arr.length - 1; i > 0; i--) {
+                                    const j = Math.floor(seededRandom(seed + i) * (i + 1));
+                                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                                }
+                                return arr;
+                            }
+                            const seed = stringToSeed(gameSeed + '_' + currentTeamName + '_' + currentQuestion.id);
+                            answerArr = seededShuffle(answerArr, seed);
+
+                            let votingHtml = '';
+                            answerArr.forEach(([team, answerData]) => {
+                                const isSelected = selectedVote === team;
+                                const buttonClass = isSelected ? 'btn-vote-selected' : '';
+                                const checkmark = isSelected ? '✓ ' : '';
+                                const disabled = !!teamVote;
+
+                                votingHtml += `
+                                    <div class="voting-button">
+                                        <button class="btn btn-vote ${buttonClass}" data-team="${team}" ${disabled ? 'disabled' : ''}>
+                                            ${checkmark}${answerData.text}
+                                        </button>
+                                    </div>
+                                `;
+                            });
+
+                            const submitDisabled = !selectedVote || !!teamVote;
+                            const submitText = teamVote ? 'Vote Submitted' : 'Submit Vote';
+                            const submitButtonHtml = `
+                                <div style="margin-top: 20px;">
+                                    <button id="submitVoteBtn" class="btn btn-primary" ${submitDisabled ? 'disabled' : ''}>${submitText}</button>
+                                </div>
+                            `;
+
+                            votingArea.innerHTML = (votingHtml || '<p class="empty-state">Only your answer available</p>') + submitButtonHtml;
+                        } else {
+                            votingArea.innerHTML = '<p class="empty-state">Waiting for answers to vote...</p>';
+                        }
+                    });
+                });
+            });
+        }
+
+        // Timer Functions
+        function startTimer(duration) {
+            stopTimer();
+            timerRemaining = duration;
+            timerStartTime = Date.now();
+            const timerDisplay = document.getElementById('timerDisplay');
+            if (timerDisplay) timerDisplay.style.display = 'flex';
+            updateTimerDisplay();
+            timerInterval = setInterval(updateTimerDisplay, 100);
+        }
+
+        function updateTimerDisplay() {
+            if (timerStartTime === null) return;
+            const elapsedMs = Date.now() - timerStartTime;
+            const remaining = Math.max(0, timerRemaining - Math.floor(elapsedMs / 1000));
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            const timerMinutesEl = document.getElementById('timerMinutes');
+            const timerSecondsEl = document.getElementById('timerSeconds');
+            if (timerMinutesEl) timerMinutesEl.textContent = minutes;
+            if (timerSecondsEl) timerSecondsEl.textContent = seconds.toString().padStart(2, '0');
+            const timerDisplay = document.getElementById('timerDisplay');
+            if (timerDisplay) {
+                if (remaining <= 10) timerDisplay.style.color = '#ef4444'; 
+                else if (remaining <= 20) timerDisplay.style.color = '#f97316'; 
+                else timerDisplay.style.color = '#10b981'; 
+            }
+            if (remaining <= 0) {
+                stopTimer();
+                handleTimerExpired();
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            const timerDisplay = document.getElementById('timerDisplay');
+            if (timerDisplay) timerDisplay.style.display = 'none';
+        }
+
+        async function handleTimerExpired() {
+            timerExpired = true;
+            if (gamePhase === 'answering') {
+                const answerInput = document.getElementById('answerInput');
+                if (answerInput && answerInput.value.trim()) {
+                    await submitAnswer(true);
+                }
+            } else if (gamePhase === 'voting' && !teamVote && selectedVote) {
+                await submitVote();
+            }
+            updateUIForPhase();
+        }
+
+        function updateUIForPhase() {
+            const gameScreen = document.getElementById('gameScreen');
+            const transitionScreen = document.getElementById('transitionScreen');
+            const leaderboardScreen = document.getElementById('leaderboardScreen');
+            const waitingLobbyScreen = document.getElementById('waitingLobbyScreen');
+            const answerForm = document.getElementById('answerForm');
+            const answerSubmitted = document.getElementById('answerSubmitted');
+            const votingSection = document.querySelector('.voting-section');
+            const submitBtn = document.getElementById('submitAnswerBtn');
+            const timesUpScreen = document.getElementById('timesUpScreen');
+            const scoreboardSection = document.querySelector('.scoreboard-section');
+
+            gameScreen.classList.remove('active');
+            transitionScreen.classList.remove('active');
+            leaderboardScreen.classList.remove('active');
+            waitingLobbyScreen.classList.remove('active');
+            if (timesUpScreen) timesUpScreen.classList.remove('active');
+
+            if (gamePhase === 'setup' || gamePhase === 'waiting_for_teams') {
+                waitingLobbyScreen.classList.add('active');
+                updateLobbyTeamsList();
+            } else if (gamePhase === 'answering') {
+                if (timerExpired) timesUpScreen.classList.add('active');
+                else gameScreen.classList.add('active');
+                
+                votingSection.style.display = 'none';
+                scoreboardSection.classList.remove('show');
+                answerForm.style.display = 'block';
+                answerSubmitted.style.display = 'none';
+                if (submitBtn) submitBtn.disabled = false;
+            } else if (gamePhase === 'answering_finished') {
+                transitionScreen.classList.add('active');
+            } else if (gamePhase === 'voting') {
+                if (timerExpired) timesUpScreen.classList.add('active');
+                else gameScreen.classList.add('active');
+                
+                votingSection.style.display = 'block';
+                scoreboardSection.classList.add('show');
+                answerForm.style.display = 'none';
+                answerSubmitted.style.display = 'none';
+                if (submitBtn) submitBtn.disabled = true;
+            } else if (gamePhase === 'results') {
+                leaderboardScreen.classList.add('active');
+                updateLeaderboardDisplay();
+            } else if (gamePhase === 'celebration') {
+                window.location.href = `celebration.html?session=${sessionCode}`;
+            } else {
+                gameScreen.classList.add('active'); 
+            }
+        }
+
+        function startListeners() {
+            onValue(getGameRef('phase'), (snapshot) => {
+                const newPhase = snapshot.val();
+                if (newPhase !== gamePhase) {
+                    let previousPhase = gamePhase;
+                    gamePhase = newPhase;
+                    
+                    if (gamePhase === 'answering' || gamePhase === 'voting') {
+                        timerExpired = false;
+                        document.getElementById('timesUpScreen').classList.remove('active');
+                    }
+
+                    if ((previousPhase === 'answering' || previousPhase === 'voting') && 
+                        (gamePhase === 'answering_finished' || gamePhase === 'voting' || gamePhase === 'results')) {
+                        stopTimer();
+                    }
+                    updateUIForPhase();
+                } else if ((gamePhase === 'answering' || gamePhase === 'voting') && currentQuestion && currentQuestion.timerStartTime) {
+                    const now = Math.floor(Date.now() / 1000);
+                    const elapsedSeconds = now - currentQuestion.timerStartTime;
+                    const remainingSeconds = Math.max(0, currentQuestion.timerDuration - elapsedSeconds);
+                    if (remainingSeconds > 0) startTimer(remainingSeconds);
+                    else handleTimerExpired();
+                }
+            });
+
+            onValue(getGameRef('currentQuestion'), (snapshot) => {
+                currentQuestion = snapshot.val();
+                const question = currentQuestion;
+                
+                teamVote = null;
+                selectedVote = null;
+                teamVoteData = null;
+                teamAnswer = null;
+                timerExpired = false;
+                
+                if (question) {
+                    document.getElementById('questionArea').innerHTML = `<h3>${question.text}</h3>`;
+                    
+                    if ((gamePhase === 'answering' || gamePhase === 'voting') && question.timerStartTime) {
+                        const now = Math.floor(Date.now() / 1000);
+                        const remaining = Math.max(0, question.timerDuration - (now - question.timerStartTime));
+                        if (remaining > 0) startTimer(remaining);
+                        else handleTimerExpired();
+                    }
+                    
+                    if (gamePhase === 'answering') {
+                        get(getGameRef(`answers/${question.id}/${currentTeamName}`)).then(snap => {
+                            if (snap.exists()) {
+                                teamAnswer = snap.val().text;
+                                document.getElementById('answerForm').style.display = 'none';
+                                document.getElementById('answerSubmitted').style.display = 'block';
+                            } else {
+                                document.getElementById('answerForm').style.display = 'block';
+                                document.getElementById('answerSubmitted').style.display = 'none';
+                            }
+                        });
+                    } else {
+                        document.getElementById('answerForm').style.display = 'none';
+                        document.getElementById('answerSubmitted').style.display = 'none';
+                    }
+                } else {
+                    document.getElementById('questionArea').innerHTML = '<h3>Waiting for question...</h3>';
+                    stopTimer();
+                }
+                updateUIForPhase();
+                updateVotingDisplay();
+            });
+
+            onValue(getGameRef('roundFinished'), (snapshot) => {
+                const newRoundFinished = snapshot.val() || false;
+                if (newRoundFinished !== roundFinished) {
+                    roundFinished = newRoundFinished;
+                    if (gamePhase === 'voting') updateVotingDisplay();
+                }
+            });
+
+            onValue(getGameRef('scores'), (snapshot) => {
+                const scores = snapshot.val();
+                if (scores) {
+                    const sortedTeams = Object.entries(scores)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([team, score]) => `
+                            <div class="scoreboard-entry ${team === currentTeamName ? 'own-team' : ''}">
+                                <span class="team-name">${team}</span>
+                                <span class="team-score">${score}</span>
+                            </div>
+                        `).join('');
+                    document.getElementById('scoreBoard').innerHTML = sortedTeams;
+                    if (scores[currentTeamName]) {
+                        document.getElementById('teamScore').textContent = scores[currentTeamName];
+                    }
+                }
+            });
+
+            onValue(getGameRef('teams'), (snapshot) => {
+                updateLobbyTeamsList();
+            });
+
+            onValue(getGameRef('settings'), (snapshot) => {
+                const settings = snapshot.val() || {};
+                if (settings.background) document.body.style.setProperty('--custom-bg', `url('${settings.background}')`);
+                else document.body.style.removeProperty('--custom-bg');
+                
+                const scale = settings.bgScale || 6;
+                if (scale > 1) {
+                    document.body.style.backgroundSize = `${100 / scale}vw`;
+                    document.body.style.backgroundRepeat = 'repeat';
+                } else {
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundRepeat = 'no-repeat';
+                }
+
+                if (settings.theme) {
+                    if (settings.theme.primary) document.documentElement.style.setProperty('--primary-color', settings.theme.primary);
+                    if (settings.theme.secondary) document.documentElement.style.setProperty('--secondary-color', settings.theme.secondary);
+                } else {
+                    document.documentElement.style.removeProperty('--primary-color');
+                    document.documentElement.style.removeProperty('--secondary-color');
+                }
+            });
+        }
+
+        // --- Init ---
+        function init() {
+            // Event Listeners
+            document.getElementById('joinBtn').addEventListener('click', joinGame);
+            document.getElementById('submitAnswerBtn').addEventListener('click', () => submitAnswer(false));
+            document.getElementById('votingArea').addEventListener('click', (e) => {
+                const voteBtn = e.target.closest('.btn-vote');
+                if (voteBtn && !voteBtn.disabled) {
+                    selectVote(voteBtn.dataset.team);
+                }
+                const submitBtn = e.target.closest('#submitVoteBtn');
+                if (submitBtn && !submitBtn.disabled) {
+                    submitVote();
+                }
+            });
+
+            // Auth
+            signInAnonymously(auth)
+                .then(user => {
+                    currentUser = user;
+                    console.log("Authenticated as:", user.user.uid);
+                    
+                    const btn = document.getElementById('joinBtn');
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Join Game';
+                    }
+
+                    // Parse Session Code
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlSession = urlParams.get('session');
+                    if (urlSession) {
+                        sessionCode = urlSession.toUpperCase();
+                        const el = document.getElementById('sessionCode');
+                        if(el) el.value = sessionCode;
+                    }
+
+                    checkAndRestoreSession();
+                })
+                .catch(error => {
+                    console.error("Auth error:", error);
+                    alert("Authentication failed. Please reload.");
+                });
+        }
+
+        init();
+
+    </script>
+</body>
+</html>

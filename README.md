@@ -226,5 +226,4 @@ The app is fully responsive:
 
 ## License
 
-Free to use. Have fun playing! 🎮#   N o b o d y - s - P e r f e c t  
- 
+Free to use. Have fun playing!
