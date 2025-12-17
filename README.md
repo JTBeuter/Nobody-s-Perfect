@@ -27,51 +27,72 @@ A browser-based web app for a "Nobody's Perfect" style trivia game with real-tim
 
 Here is the easiest way to get your own version of the game running.
 
-### 1. Setup Firebase (Database & Backend)
+### Part 1: Setup Firebase (Database & Backend)
 
+**A. Create Project**
 1.  Go to [console.firebase.google.com](https://console.firebase.google.com/) and sign in with your Google account.
 2.  Click on **"Add project"**.
 3.  Give the project a name (e.g., `my-game-project`) and click "Continue".
 4.  Disable "Google Analytics" (not needed for this game) and click **"Create project"**.
 5.  Wait a moment for the project to be ready, then click **"Continue"**.
-6.  You are now in the dashboard. Click on the **Web icon** `</>` (a circle with `</>` inside, below the project name).
-7.  Give the app a name (e.g., `game-app`) and click **"Register app"**.
-8.  **IMPORTANT:** You will see a code block (`const firebaseConfig = ...`). Copy the content between the curly braces `{ ... }` (including the braces). You will need this in Part 2.
-9.  Click "Continue to console".
 
-**Activate Database:**
-10. In the left menu, click **"Build"** -> **"Realtime Database"**.
-11. Click **"Create Database"**.
-12. Choose a location (e.g., **"Belgium (europe-west1)"**) and click "Next".
-13. Choose **"Start in test mode"** and click **"Enable"**.
-    *   *Note: Test mode allows read/write access for 30 days. For permanent use, adjust the rules later.*
+**B. Register Web App**
+1.  Click on **"Add app"** (below the project name).
+2.  Click on the **Web icon** `</>` (a circle with `</>` inside, below the project name).
+3.  Give the app a name (e.g., `game-app`) and click **"Register app"** (Keep Firebase Hosting disabled).
+4.  **IMPORTANT:** You will see a code block (`const firebaseConfig = ...`). Copy the content between the curly braces `{ ... }` (including the braces). You will need this in Part 2.
+5.  Click **"Continue to console"**.
 
-**Update Database Rules (CRITICAL for Multi-Session):**
-14. Go to the **"Rules"** tab in the Realtime Database.
-15. Change the rules to allow access to the `games` node:
-```json
-{
-  "rules": {
-    "games": {
-      ".read": true,
-      ".write": true
+**C. Create Database**
+1.  In the left menu, click **"Build"** -> **"Realtime Database"**.
+2.  Click **"Create Database"**.
+3.  Choose a location (e.g., **"Belgium (europe-west1)"**) and click **"Next"**.
+4.  Choose **"Start in test mode"** and click **"Enable"**.
+
+**D. Update Database Rules**
+1.  Go to the **"Rules"** tab in the Realtime Database.
+2.  Change the rules to allow access to the `games` node. Delete the existing code and paste this:
+    ```json
+    {
+      "rules": {
+        "games": {
+          ".read": true,
+          ".write": true
+        }
+      }
     }
-  }
-}
-```
-16. Click **"Publish"**.
+    ```
+3.  Click **"Publish"**.
 
-**Activate Authentication:**
-17. In the left menu, click **"Build"** -> **"Authentication"**.
-18. Click **"Get started"**.
-19. Select **"Anonymous"** under "Additional providers".
-20. Toggle the switch to "Enable" and click **"Save"**.
+**E. Activate Authentication**
+1.  In the left menu, click **"Build"** -> **"Authentication"**.
+2.  Click **"Get started"**.
+3.  Select **"Anonymous"** under "Additional providers".
+4.  Toggle the switch to "Enable" and click **"Save"**.
 
-### Part 2: Connect Code
+### Part 2: Get the Code & Host on GitHub
 
-1.  Open the file `firebase-config.js` in your project folder.
-2.  Replace the entire content of the `firebaseConfig` object with the data you copied in Step 8.
-    The file should look like this:
+To make the game accessible to your friends, you will host it for free on GitHub Pages. Instead of downloading files, you can copy them directly from my repository.
+
+**A. Create a GitHub Account & Import Repository**
+1.  Go to [github.com](https://github.com/) and sign up or log in.
+2.  In the top-right corner, click the **+** icon and select **"Import repository"**.
+3.  **Your old repository's clone URL:** Paste this link:  
+    `https://github.com/JTBeuter/Nobody-s-Perfect.git`
+4.  **Repository Name:** Enter a name for your game (e.g., `my-trivia-game`).
+5.  **Privacy:** Select **Public**.
+6.  Click **"Begin import"**.
+7.  Wait for the process to finish (it might take a minute). When done, click the link to go to your new repository.
+
+**B. Connect Your Firebase**
+Now you need to put your own Firebase keys into the code.
+1.  In your new repository, find the file list and click on `firebase-config.js`.
+2.  Click the **pencil icon** (top right of the file view) to edit the file.
+3.  **⚠️ IMPORTANT:** When replacing the code, **ensure the line starts with `export const`**.
+    *   Firebase gives you: `const firebaseConfig = ...`
+    *   **YOU MUST CHANGE IT TO:** `export const firebaseConfig = ...`
+    
+    Replace the file content with your config so it looks exactly like this:
     ```javascript
     export const firebaseConfig = {
         apiKey: "Your-API-Key...",
@@ -84,92 +105,47 @@ Here is the easiest way to get your own version of the game running.
         measurementId: "G-..."
     };
     ```
-3.  Save the file.
+4.  Scroll down and click the green button **"Commit changes"**.
 
-### Part 3: Run Locally
+**C. Activate GitHub Pages**
+1.  In your repository, click the **"Settings"** tab (top menu bar).
+2.  In the left sidebar, click on **"Pages"** (under the "Code and automation" section).
+3.  Under **"Build and deployment"**, find the **"Branch"** section.
+4.  Click the dropdown menu that says "None" and select **"main"** (or "master").
+5.  Click **"Save"**.
+6.  Wait about 1-2 minutes for GitHub to build your site. Refresh the page occasionally.
+7.  A bar will appear at the top of the page saying: **"Your site is live at..."** followed by a link (e.g., `https://your-username.github.io/my-trivia-game/`).
+8.  Click that link to open your game!
 
-Since this project uses JavaScript ES6 Modules, you cannot simply double-click `index.html`. You need a local web server.
-
-**Option A: Using Python (Pre-installed on macOS/Linux/most Windows)**
-1. Open your terminal/command prompt in the project folder.
-2. Run:
-   ```bash
-   python -m http.server
-   # OR for Python 2
-   python -m SimpleHTTPServer
-   ```
-3. Open `http://localhost:8000` in your browser.
-
-**Option B: Using Node.js**
-1. Install `http-server` globally (once):
-   ```bash
-   npm install -g http-server
-   ```
-2. Run in project folder:
-   ```bash
-   http-server
-   ```
-3. Open the link shown (usually `http://127.0.0.1:8080`).
-
-### Part 4: Publish on GitHub (Frontend)
-
-1.  Go to [github.com/new](https://github.com/new) and create a new repository.
-2.  Give it a name (e.g., `trivia-game`) and select **"Public"**.
-3.  Click **"Create repository"**.
-4.  Upload your files:
-    *   **Option A (Easy - via Browser):**
-        1. Click the link "uploading an existing file" in the "Quick setup" area.
-        2. Drag and drop all files from your local folder (`index.html`, `host.html`, `firebase-config.js`, `styles.css`, etc.) into the browser window.
-        3. Click the green button **"Commit changes"** at the bottom.
-    *   **Option B (Advanced - via Git):**
-        Open your terminal in the project folder and run:
-        ```bash
-        git init
-        git add .
-        git commit -m "Initial release"
-        git branch -M main
-        git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
-        git push -u origin main
-        ```
-
-**Activate GitHub Pages (to go live):**
-5.  Go to the **"Settings"** tab in your repository.
-6.  Click **"Pages"** in the left menu.
-7.  Under "Build and deployment" -> "Branch":
-    *   Select **"main"** (or "master") from the dropdown.
-    *   Click **"Save"**.
-8.  Wait about 1-2 minutes. Refresh the page (`F5`).
-9.  A box will appear at the top with the link: `Your site is live at...`
-10. Click it – Your game is now online! 🥳
-
-**Tip:** Share the link to `index.html` with your players. You (the host) should click "Host New Game" on that page to start.
+**D. Share with Players**
+1.  Copy the URL of your live site.
+2.  Send this link to your players.
+3.  Open the link yourself and click **"Host New Game"** to start.
 
 ## Usage
 
-### 👥 For Players
+### For Players
+1.  Open the game link provided by the host.
+2.  Click **"Join Game"**.
+3.  Enter the **Session Code** (displayed on the Host's screen) and your **Team Name**.
+4.  Wait for the game to start.
+5.  Enter your invented answer when prompted.
+6.  Vote on other answers (guessing the correct one).
+7.  View the scoreboard after each round.
 
-1. Open `index.html` (or the GitHub Pages URL)
-2. Click "Join Game"
-3. Enter the Session Code (displayed on Host's screen) and your Team Name
-4. Wait for the game to start
-5. Enter your answer when prompted
-6. Vote on other answers
-7. View the scoreboard
-
-### 🎮 For Host
-
-1. Open `index.html`
-2. Click **"Host New Game"** (this generates a unique Session Code)
-3. **Setup Phase:**
-   - Enter a question and the correct answer
-   - Click "Add Question" (repeat for all questions)
-   - (Optional) Customize colors or background
-   - Click **"Create Lobby"** when ready
-4. **Game Phase:**
-   - Share the Session Code (or QR Code) with players
-   - Wait for teams to join
-   - Click "Start Game" to begin answering phase
-   - Control the flow: "To Voting Phase" -> "Start Voting" -> "Show Results" -> "Next Question"
+### For Host
+1.  Open the game link.
+2.  Click **"Host New Game"** (this generates a unique Session Code).
+3.  **Setup Phase:**
+    *   Enter a question and the correct answer.
+    *   Click **"Add Question"** (repeat for all questions).
+    *   (Optional) Customize colors or background.
+    *   Click **"Create Lobby"** when ready.
+4.  **Game Phase:**
+    *   Share the **Session Code** (or QR Code) with players.
+    *   Wait for teams to join.
+    *   Click **"Start Game"** to begin the answering phase.
+    *   Control the flow: "To Voting Phase" -> "Start Voting" -> "Show Results" -> "Next Question".
 
 ## Database Structure
 
